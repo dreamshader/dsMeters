@@ -1,3 +1,40 @@
+/* 
+ ********************************************************************
+ * ESP8266 several graphical meters
+ *
+ *   Copyright (C) 2018 Dreamshader (aka Dirk Schanz)
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ *********************************************************************
+ *
+ * This library needs the Adafruit GFX library!
+ *
+ *********************************************************************
+
+ * at this time the following meters are realized:
+ *
+ * dsBattStatus: this can be used as a status display for
+ *               e.g. accu batteries
+ *
+ *++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ *
+ * history:
+ *  
+ *********************************************************************
+*/
+
+
 
 
 #include <dsMeters.h>
@@ -105,6 +142,31 @@ void dsBattStatus::update( int percentLoad )
 
     if( percentLoad > 0 )
     {
+
+
+#define COLOR_STEPS      100.0
+#define COLOR_START_R   255
+#define COLOR_START_G     0
+#define COLOR_START_B     0
+#define COLOR_END_R      14
+#define COLOR_END_G     242
+#define COLOR_END_B      41
+
+#define COLOR_DIFF_R    COLOR_END_R - COLOR_START_R
+#define COLOR_DIFF_G    COLOR_END_G - COLOR_START_G
+#define COLOR_DIFF_B    COLOR_END_B - COLOR_START_B
+
+    float factor = percentage / COLOR_STEPS;
+
+    uint16_t nextR = COLOR_START_R + ( COLOR_DIFF_R * factor );
+    uint16_t nextG = COLOR_START_G + ( COLOR_DIFF_G * factor );
+    uint16_t nextB = COLOR_START_B + ( COLOR_DIFF_B * factor );
+
+  color  = (nextR & 0xF8) << 8;  // 5 bits
+  color |= (nextG & 0xFC) << 3;  // 6 bits
+  color |= (nextB & 0xF8) >> 3;  // 5 bits
+
+#if 0
         color = DSMETER_COLOR_RED;
         if( percentLoad > _redLimit )
         {
@@ -114,7 +176,8 @@ void dsBattStatus::update( int percentLoad )
                 color = DSMETER_COLOR_GREEN;
             }
         }
-        
+#endif
+
         percentage = percentLoad/100.0;
 
 // Serial.print("percentage: ");
