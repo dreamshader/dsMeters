@@ -47,7 +47,10 @@
 #include <avr/pgmspace.h>
 #endif
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+ 
 
 #define DSMETER_COLOR_WHITE   0xFFFF
 #define DSMETER_COLOR_BLACK   0x0000
@@ -128,6 +131,11 @@ private:
     char           _label[5];
 
 };
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif // _DS_METERS_H_

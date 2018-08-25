@@ -80,6 +80,10 @@ bool dsBattStatus::init( Adafruit_GFX *gfx, int16_t xCenter,
     _scale    = scale;
     _textPos  = textPos;
 
+// tft.drawFastHLine(0, 50, tft.width()-50, ILI9341_GREEN);
+// tft.drawFastVLine(50, 0, tft.height()-50, ILI9341_GREEN);
+
+
     // left upper corner ...
     xPos = _xCenter - (_width/2);
     yPos = _yCenter - (_height/2);
@@ -102,7 +106,21 @@ void dsBattStatus::update( int percentLoad )
     int16_t  xBound, yBound; 
     uint16_t wBound, hBound;
     uint16_t color, pixels;
-    float percentage;
+    float    percentage;
+    int      entry2Use;
+
+
+    if( percentLoad > 100 )
+    {
+        percentLoad = 100;
+    }
+    else
+    {
+        if( percentLoad < 0 )
+        {
+            percentLoad = 0;
+        }
+    }
 
     // left upper corner ...
     xPos = _xCenter - (_width/2);
@@ -143,40 +161,54 @@ void dsBattStatus::update( int percentLoad )
     if( percentLoad > 0 )
     {
 
+typedef struct _rgb_gradient_ {
+    uint16_t startR;
+    uint16_t startG;
+    uint16_t startB;
+    uint16_t endR;
+    uint16_t endG;
+    uint16_t endB;
+};
 
-#define COLOR_STEPS      100.0
-#define COLOR_START_R   255
-#define COLOR_START_G     0
-#define COLOR_START_B     0
-#define COLOR_END_R      14
-#define COLOR_END_G     242
-#define COLOR_END_B      41
+struct _rgb_gradient_ chargeColor [] {
+    { 253,  11, 22, 253, 238, 11 },
+    { 253, 238, 11,  37, 253, 11 },
+    { 253,  11, 22, 37, 253, 11 }    // combination of 0 and 1
+};
 
-#define COLOR_DIFF_R    COLOR_END_R - COLOR_START_R
-#define COLOR_DIFF_G    COLOR_END_G - COLOR_START_G
-#define COLOR_DIFF_B    COLOR_END_B - COLOR_START_B
 
-    float factor = percentage / COLOR_STEPS;
+//    entry2Use = 0;
+//
+//    if( percentLoad >= 50 )
+//    {
+//        entry2Use = 1;
+//    }
+ 
+// looks ok, too:
+entry2Use = 2;
 
-    uint16_t nextR = COLOR_START_R + ( COLOR_DIFF_R * factor );
-    uint16_t nextG = COLOR_START_G + ( COLOR_DIFF_G * factor );
-    uint16_t nextB = COLOR_START_B + ( COLOR_DIFF_B * factor );
+    float factor = (float) percentLoad / 100;
 
-  color  = (nextR & 0xF8) << 8;  // 5 bits
-  color |= (nextG & 0xFC) << 3;  // 6 bits
-  color |= (nextB & 0xF8) >> 3;  // 5 bits
+    int16_t diffR = chargeColor[entry2Use].endR - chargeColor[entry2Use].startR;
+    int16_t diffG = chargeColor[entry2Use].endG - chargeColor[entry2Use].startG;
+    int16_t diffB = chargeColor[entry2Use].endB - chargeColor[entry2Use].startB;
 
-#if 0
-        color = DSMETER_COLOR_RED;
-        if( percentLoad > _redLimit )
-        {
-            color = DSMETER_COLOR_YELLOW;
-            if( percentLoad > _yellowLimit )
-            {
-                color = DSMETER_COLOR_GREEN;
-            }
-        }
-#endif
+    uint16_t nextR = chargeColor[entry2Use].startR + ( diffR * factor );
+    uint16_t nextG = chargeColor[entry2Use].startG + ( diffG * factor );
+    uint16_t nextB = chargeColor[entry2Use].startB + ( diffB * factor );
+
+    color  = (nextR & 0xF8) << 8;  // 5 bits
+    color |= (nextG & 0xFC) << 3;  // 6 bits
+    color |= (nextB & 0xF8) >> 3;  // 5 bits
+
+// Serial.print("nextR/nextG/nextB = ");
+// Serial.print(nextR & 0xF8);
+// Serial.print(" / ");
+// Serial.print(nextG & 0xFC);
+// Serial.print(" / ");
+// Serial.println(nextB & 0xF8);
+// Serial.print("color = ");
+// Serial.println(color, HEX);
 
         percentage = percentLoad/100.0;
 
